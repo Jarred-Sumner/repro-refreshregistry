@@ -1,6 +1,34 @@
-import Head from 'next/head'
+import Head from "next/head";
+import { Expensive } from "../lib/sharedCode";
+import DemoWorker from "../lib/demo.worker";
 
 export default function Home() {
+  const [isExpensiveWebComplete, setExpensiveWebComplete] = React.useState(
+    false
+  );
+  const [expensiveWorkerStatus, setExpensiveWorkerComplete] = React.useState(
+    "🤔"
+  );
+  const worker = React.useRef();
+
+  if (typeof window !== "undefined") {
+    React.useEffect(() => {
+      worker.current = new DemoWorker();
+      worker.current.addEventListener("message", ({ data }) => {
+        if (data) {
+          setExpensiveWorkerComplete("✅");
+        }
+      });
+      worker.current.addEventListener("error", (data) => {
+        setExpensiveWorkerComplete("🔴");
+      });
+    }, [worker, setExpensiveWorkerComplete]);
+    React.useEffect(() => {
+      Expensive();
+      setExpensiveWebComplete(true);
+    }, [setExpensiveWebComplete, Expensive]);
+  }
+
   return (
     <div className="container">
       <Head>
@@ -9,42 +37,20 @@ export default function Home() {
       </Head>
 
       <main>
-        <h1 className="title">
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
+        <h2 className="title">$RefreshRegistry repro</h2>
 
-        <p className="description">
-          Get started by editing <code>pages/index.js</code>
-        </p>
+        <div className="Table">
+          <div className="Table-row">
+            <div className="Status">{isExpensiveWebComplete ? "✅" : "🤔"}</div>
 
-        <div className="grid">
-          <a href="https://nextjs.org/docs" className="card">
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
+            <div className="Label Web">Web</div>
+          </div>
 
-          <a href="https://nextjs.org/learn" className="card">
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
+          <div className="Table-row">
+            <div className="Status">{expensiveWorkerStatus}</div>
 
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className="card"
-          >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/import?filter=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className="card"
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
+            <div className="Label Worker">Worker</div>
+          </div>
         </div>
       </main>
 
@@ -54,7 +60,7 @@ export default function Home() {
           target="_blank"
           rel="noopener noreferrer"
         >
-          Powered by{' '}
+          Powered by{" "}
           <img src="/vercel.svg" alt="Vercel Logo" className="logo" />
         </a>
       </footer>
@@ -67,6 +73,20 @@ export default function Home() {
           flex-direction: column;
           justify-content: center;
           align-items: center;
+        }
+
+        .Table {
+          margin-top: 72px;
+          display: grid;
+          grid-template-rows: auto auto;
+          grid-row-gap: 48px;
+        }
+
+        .Table-row {
+          display: grid;
+          grid-template-columns: 48px auto;
+          grid-column-gap: 24px;
+          font-size: 48px;
         }
 
         main {
@@ -205,5 +225,5 @@ export default function Home() {
         }
       `}</style>
     </div>
-  )
+  );
 }
